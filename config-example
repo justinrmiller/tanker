@@ -1,0 +1,9 @@
+[Access]
+apikey: apikey
+
+[TankerSettings]
+prefix=school
+
+[DropSettings]
+region=sfo1
+size_slug=512mb
