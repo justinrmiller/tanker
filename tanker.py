@@ -1,12 +1,29 @@
+#!/usr/bin/env python
+
+__author__ = "Justin Miller"
+__copyright__ = "Copyright 2015, Justin Miller"
+__credits__ = []
+__version__ = "1.0"
+__maintainer__ = "Justin Miller"
+__email__ = "justinrmiller@gmail.com"
+
+# external dependencies
+# digitalocean - pip install -U python-digitalocean
+
 import ConfigParser
 import argparse
 import os
+import json
+import sys
 
 import digitalocean
-import json
 
 Config = ConfigParser.ConfigParser()
-Config.read(os.path.expanduser('~/.tanker/config'))
+read_ok = Config.read(os.path.expanduser('~/.tanker/config'))
+
+if not read_ok:
+	print("Can't parse/find config file at ~/.tanker/config")
+	exit()
 
 def config_extractor(section):
 	config = {}
@@ -44,6 +61,8 @@ manager = digitalocean.Manager(token=api_key)
 
 
 def create_tanker(args):
+	# TODO: ADD CODE TO ENSURE A TANKER DOESN'T ALREADY EXIST OF THE SAME NAME
+
 	if "-" in args.tankername:
 		print ("tanker name cannot contain -.")
 		exit()
@@ -131,45 +150,49 @@ def list_ssh_keys(args):
 	for ssh_key in ssh_keys:
 		print(ssh_key)
 
-parser = argparse.ArgumentParser(prog='tanker')
-subparsers = parser.add_subparsers(help='commands')
+def main(argv):
+	parser = argparse.ArgumentParser(prog='tanker')
+	subparsers = parser.add_subparsers(help='commands')
 
-list_parser = subparsers.add_parser('list', help='List tankers')
-list_parser.set_defaults(func=list_tankers)
+	list_parser = subparsers.add_parser('list', help='List tankers')
+	list_parser.set_defaults(func=list_tankers)
 
-create_parser = subparsers.add_parser('create', help='Create a tanker')
-create_parser.add_argument('tankername', action='store', help='Name of the tanker')
-create_parser.add_argument('count', action='store', help='Number of drops in the tanker')
-create_parser.add_argument('image', action='store', help='Image id for the drops in the tanker')
-create_parser.set_defaults(func=create_tanker)
+	create_parser = subparsers.add_parser('create', help='Create a tanker')
+	create_parser.add_argument('tankername', action='store', help='Name of the tanker')
+	create_parser.add_argument('count', action='store', help='Number of drops in the tanker')
+	create_parser.add_argument('image', action='store', help='Image id for the drops in the tanker')
+	create_parser.set_defaults(func=create_tanker)
 
-destroy_parser = subparsers.add_parser('destroy', help='Destroy a tanker')
-destroy_parser.add_argument('tankername', action='store', help='Name of the tanker')
-destroy_parser.set_defaults(func=destroy_tanker)
+	destroy_parser = subparsers.add_parser('destroy', help='Destroy a tanker')
+	destroy_parser.add_argument('tankername', action='store', help='Name of the tanker')
+	destroy_parser.set_defaults(func=destroy_tanker)
 
-list_private_images_parser = subparsers.add_parser('private', help='List private images')
-list_private_images_parser.set_defaults(func=list_private_images)
+	list_private_images_parser = subparsers.add_parser('private', help='List private images')
+	list_private_images_parser.set_defaults(func=list_private_images)
 
-list_public_images_parser = subparsers.add_parser('public', help='List public images')
-list_public_images_parser.set_defaults(func=list_public_images)
+	list_public_images_parser = subparsers.add_parser('public', help='List public images')
+	list_public_images_parser.set_defaults(func=list_public_images)
 
-list_ssh_keys_parser = subparsers.add_parser('keys', help='List ssh keys')
-list_ssh_keys_parser.set_defaults(func=list_ssh_keys)
+	list_ssh_keys_parser = subparsers.add_parser('keys', help='List ssh keys')
+	list_ssh_keys_parser.set_defaults(func=list_ssh_keys)
 
-list_drops_parser = subparsers.add_parser('drops', help='List all drops')
-list_drops_parser.set_defaults(func=list_drops)
+	list_drops_parser = subparsers.add_parser('drops', help='List all drops')
+	list_drops_parser.set_defaults(func=list_drops)
 
-list_json_parser = subparsers.add_parser('json', help='List a tanker as json')
-list_json_parser.add_argument('tankername', action='store', help='Name of the tanker')
-list_json_parser.set_defaults(func=list_tanker_json)
+	list_json_parser = subparsers.add_parser('json', help='List a tanker as json')
+	list_json_parser.add_argument('tankername', action='store', help='Name of the tanker')
+	list_json_parser.set_defaults(func=list_tanker_json)
 
-list_comma_parser = subparsers.add_parser('comma', help='List a tanker as comma separated list')
-list_comma_parser.add_argument('tankername', action='store', help='Name of the tanker')
-list_comma_parser.set_defaults(func=list_tanker_comma)
+	list_comma_parser = subparsers.add_parser('comma', help='List a tanker as comma separated list')
+	list_comma_parser.add_argument('tankername', action='store', help='Name of the tanker')
+	list_comma_parser.set_defaults(func=list_tanker_comma)
 
-list_space_parser = subparsers.add_parser('space', help='List a tanker as space separated list')
-list_space_parser.add_argument('tankername', action='store', help='Name of the tanker')
-list_space_parser.set_defaults(func=list_tanker_space)
+	list_space_parser = subparsers.add_parser('space', help='List a tanker as space separated list')
+	list_space_parser.add_argument('tankername', action='store', help='Name of the tanker')
+	list_space_parser.set_defaults(func=list_tanker_space)
 
-args = parser.parse_args()
-args.func(args)
+	args = parser.parse_args()
+	args.func(args)
+
+if __name__ == "__main__":
+	main(sys.argv)
