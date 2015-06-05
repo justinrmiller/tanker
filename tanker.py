@@ -21,6 +21,8 @@ import digitalocean
 Config = ConfigParser.ConfigParser()
 read_ok = Config.read(os.path.expanduser('~/.tanker/config'))
 
+DELIMITER = "-"
+
 if not read_ok:
 	print("Can't parse/find config file at ~/.tanker/config")
 	exit()
@@ -50,8 +52,8 @@ try:
 
 	prefix = tanker_settings_section['prefix']
 
-	if "-" in prefix:
-		print("Prefix cannot contain -.")
+	if DELIMITER in prefix:
+		print("Prefix cannot contain " + DELIMITER + ".")
 		exit()
 except KeyError, noe:
 	print("Missing key: {}".format(noe))
@@ -63,7 +65,7 @@ manager = digitalocean.Manager(token=api_key)
 def create_tanker(args):
 	# TODO: ADD CODE TO ENSURE A TANKER DOESN'T ALREADY EXIST OF THE SAME NAME
 
-	if "-" in args.tankername:
+	if DELIMITER in args.tankername:
 		print ("tanker name cannot contain -.")
 		exit()
 
@@ -74,7 +76,8 @@ def create_tanker(args):
 			region=region,
 			image=args.image,
 			size_slug=size_slug,
-			ssh_keys=manager.get_all_sshkeys()
+			ssh_keys=manager.get_all_sshkeys(),
+			private_networking=True
 		)
 
 		print("Creating {}".format(droplet.name))
@@ -87,7 +90,7 @@ def destroy_tanker(args):
 		exit()
 
 	droplets = manager.get_all_droplets()
-	tanker_drops = filter(lambda s: s.name.startswith(prefix + "-" + args.tankername + "-"), droplets)
+	tanker_drops = filter(lambda s: s.name.startswith(prefix + DELIMITER + args.tankername + DELIMITER), droplets)
 
 	for droplet in tanker_drops:
 		try:
@@ -99,21 +102,21 @@ def destroy_tanker(args):
 
 def list_tankers(args):
 	droplets = manager.get_all_droplets()
-	tanker_drops = filter(lambda s: s.startswith(prefix + "-"), [droplet.name for droplet in droplets])
-	tankers = set([droplet.split('-')[2] for droplet in tanker_drops])
-	for tanker in tankers:
-		print(tanker)
+	tanker_drops = filter(lambda s: s.startswith(prefix + DELIMITER), [droplet.name for droplet in droplets])
+	for droplet in tanker_drops:
+		print(droplet)
 
 
 def list_drops(args):
 	droplets = manager.get_all_droplets()
-	tanker_drops = filter(lambda s: s.name.startswith(prefix + "-"), droplets)
+	tanker_drops = filter(lambda s: s.name.startswith(prefix + DELIMITER), droplets)
 	for drop in tanker_drops:
 		print(drop.name + " " + drop.ip_address)
 
+
 def list_tanker_json(args):
 	droplets = manager.get_all_droplets()
-	tanker_drops = filter(lambda s: s.name.startswith(prefix + "-" + args.tankername), droplets)
+	tanker_drops = filter(lambda s: s.name.startswith(prefix + DELIMITER + args.tankername), droplets)
 	drop_list = []
 	for drop in tanker_drops:
 		node = {}
@@ -129,26 +132,32 @@ def list_tanker_separated(args, separator):
 	tanker_drop_ips = [drop.ip_address for drop in filter(lambda s: s.name.startswith(prefix + "-" + args.tankername), droplets)]
 	print separator.join(tanker_drop_ips)
 
+
 def list_tanker_comma(args):
 	list_tanker_separated(args, ",")
 
+
 def list_tanker_space(args):
 	list_tanker_separated(args, " ")
+
 
 def list_private_images(args):
 	images = manager.get_my_images()
 	for image in images:
 		print(image)
 
+
 def list_public_images(args):
 	images = manager.get_global_images()
 	for image in images:
 		print(image)
 
+
 def list_ssh_keys(args):
 	ssh_keys = manager.get_all_sshkeys()
 	for ssh_key in ssh_keys:
 		print(ssh_key)
+
 
 def main(argv):
 	parser = argparse.ArgumentParser(prog='tanker')
