@@ -3,6 +3,8 @@ Tanker
 
 A tool for managing large numbers of Digital Ocean instances.
 
+To use, copy config-example to ~/.tanker/config and update the apikey setting under [Access].
+
 Instances are organized into a tanker, each tanker representing a group of machines. 
 
 usage: tanker [-h]
