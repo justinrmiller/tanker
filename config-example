@@ -2,7 +2,7 @@
 apikey: apikey
 
 [TankerSettings]
-prefix=school
+prefix=tanker
 
 [DropSettings]
 region=sfo1
